@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haroon TV Tools</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --gold-light: #FFD700;
+            --gold-dark: #DAA520;
+            --background-start: #141414;
+            --background-end: #000000;
+            --glass-bg: rgba(255, 215, 0, 0.05);
+        }
+        
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-end);
+            color: white;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Main Menu Styles --- */
+        #main-menu {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--background-start), var(--background-end));
+        }
+
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 5px var(--gold-dark), 0 0 15px var(--gold-dark), 0 0 30px var(--gold-dark);
+            margin-bottom: 2.5rem;
+            animation: gold-glow 3s infinite alternate;
+        }
+        @keyframes gold-glow {
+            from { text-shadow: 0 0 5px var(--gold-dark), 0 0 15px var(--gold-dark); }
+            to { text-shadow: 0 0 10px var(--gold-light), 0 0 25px var(--gold-dark), 0 0 5px #fff; }
+        }
+        
+        .tools-container { display: flex; gap: 25px; flex-wrap: wrap; justify-content: center; }
+        
+        .tool-button {
+            background: var(--glass-bg);
+            border: 1px solid var(--gold-dark);
+            color: white; border-radius: 15px;
+            padding: 18px 35px; font-size: 1.2rem; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .tool-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 25px var(--gold-dark);
+            border-color: var(--gold-light);
+        }
+        /* Shimmer Effect */
+        .tool-button::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 215, 0, 0.4), transparent);
+            transition: left 0.6s;
+        }
+        .tool-button:hover::before { left: 100%; }
+        
+        /* --- Popup Styles --- */
+        #popup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        #popup-box {
+            background: var(--glass-bg); backdrop-filter: blur(15px); padding: 35px;
+            border-radius: 15px; text-align: center; width: 90%; max-width: 400px;
+            box-shadow: 0 0 40px var(--gold-dark);
+            border: 1px solid var(--gold-light);
+            animation: fadeIn 0.5s ease-in-out;
+            position: relative;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        #popup-box h2 { font-size: 2rem; font-weight: 700; color: var(--gold-light); text-shadow: 0 0 10px var(--gold-dark); margin-bottom: 15px; }
+        #popup-box p { font-size: 1rem; margin-bottom: 35px; color: #d1d5db; line-height: 1.6; }
+        #popup-close-btn {
+            background: linear-gradient(145deg, var(--gold-light), var(--gold-dark)); 
+            color: #141414; border: none; padding: 12px 30px;
+            border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600;
+            transition: all 0.3s; box-shadow: 0 0 15px var(--gold-dark);
+        }
+        #popup-close-btn:hover { box-shadow: 0 0 25px var(--gold-light); }
+        
+        .popup-whatsapp-button {
+            margin-top: 20px;
+            background-color: transparent;
+            color: #25D366;
+            border: 1px solid #25D366;
+            padding: 8px 15px; border-radius: 50px;
+            font-size: 0.9rem; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 10px;
+            transition: all 0.3s;
+        }
+        .popup-whatsapp-button:hover { background-color: #25D366; color: white; box-shadow: 0 0 15px #25D366; }
+        
+        /* --- TV Player Page Styles --- */
+        .tv-page {
+            display: none; flex-direction: column; align-items: center; min-height: 100vh;
+            background: linear-gradient(135deg, var(--background-start), var(--background-end));
+        }
+        .tv-page h1 { display: flex; align-items: center; gap: 15px; color: #fff; margin: 15px 0; font-size: 1.5rem; font-weight: 600; }
+        .back-button {
+            width: 38px; height: 38px; background: var(--glass-bg); color: white;
+            border: 1px solid var(--gold-dark); border-radius: 8px; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .back-button:hover { border-color: var(--gold-light); box-shadow: 0 0 10px var(--gold-dark); }
+        .player-box {
+            width: 100%; max-width: 950px; aspect-ratio: 16/9; background: black;
+            border-radius: 12px; overflow: hidden; position: sticky; top: 10px;
+            z-index: 50; box-shadow: 0 0 30px rgba(0,0,0,0.7); margin-bottom: 10px;
+        }
+        .player-box video { width: 100%; height: 100%; }
+        
+        .loader { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.6); z-index: 100; visibility: hidden; }
+        .loader-spin { border: 4px solid rgba(255,255,255,0.2); border-top: 4px solid var(--gold-light); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% {transform: rotate(360deg);} }
+        
+        .controls { position: absolute; bottom: 0; left: 0; right: 0; padding-bottom: 5px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; justify-content: center; align-items: center; opacity: 1; transition: opacity 0.3s ease-out; flex-wrap: wrap; z-index: 20; }
+        .controls.hidden { opacity: 0; pointer-events: none; }
+        .control-btn { background: transparent; color: white; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 4px; cursor: pointer; transition: all 0.2s; font-size: 16px; }
+        .control-btn:hover { color: var(--gold-light); transform: scale(1.1); text-shadow: 0 0 10px var(--gold-dark); }
+        .channelName { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: white; padding: 4px 10px; border-radius: 6px; font-size: 14px; z-index: 25; transition: opacity 0.3s ease-out; }
+        .channelName.hidden { opacity: 0; }
+        .qualityMenu { position: absolute; bottom: 50px; right: 10px; background: rgba(28,28,30,0.9); border-radius: 8px; padding: 6px; display: none; z-index: 30; }
+        .progressContainer { position: absolute; bottom: 45px; left: 10px; right: 10px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; cursor: pointer; z-index: 20; transition: opacity 0.3s ease-out; }
+        .progressContainer.hidden { opacity: 0; }
+        .progressBar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--gold-light), var(--gold-dark)); border-radius: 3px; box-shadow: 0 0 10px var(--gold-dark); }
+        .progressHandle { position: absolute; top: -4.5px; width: 14px; height: 14px; background: #fff; border-radius: 50%; transform: translateX(-50%); cursor: pointer; box-shadow: 0 0 10px var(--gold-dark); }
+        .timeDisplay { position: absolute; bottom: 55px; right: 15px; color: white; font-size: 12px; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; z-index: 20; transition: opacity 0.3s ease-out; }
+        .timeDisplay.hidden { opacity: 0; }
+        
+        .channelGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 15px; padding: 15px; max-width: 950px; width: 100%; }
+        .channel-container { width: 65px; height: 65px; position: relative; }
+        .channel-logo, .logo-fallback { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .channel-container:hover .channel-logo, .channel-container:hover .logo-fallback { transform: scale(1.1); box-shadow: 0 0 15px var(--gold-dark); border-color: var(--gold-light); }
+        .active-channel { border-color: var(--gold-light); box-shadow: 0 0 15px var(--gold-light); }
+        
+        .logo-fallback { display: none; background: #2c3e50; color: white; font-size: 10px; font-weight: 600; text-align: center; align-items: center; justify-content: center; padding: 2px; box-sizing: border-box; }
+        
+        .category-title { grid-column: 1 / -1; text-align: center; font-size: 1.2rem; font-weight: 600; color: #fff; background: var(--glass-bg); padding: 8px; border-radius: 8px; margin-top: 15px; margin-bottom: 5px; border-left: 4px solid var(--gold-light); text-shadow: 0 0 10px var(--gold-dark); }
+        
+        /* Social Media Buttons */
+        .social-section {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .social-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--gold-light);
+            text-shadow: 0 0 10px var(--gold-dark);
+        }
+        
+        .social-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .social-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .social-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .facebook-btn {
+            background: linear-gradient(145deg, #3b5998, #2d4373);
+        }
+        
+        .facebook-btn:hover {
+            border-color: #3b5998;
+            box-shadow: 0 5px 15px rgba(59, 89, 152, 0.4);
+        }
+        
+        .tiktok-btn {
+            background: linear-gradient(145deg, #000000, #333333);
+        }
+        
+        .tiktok-btn:hover {
+            border-color: #000000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+        
+        .instagram-btn {
+            background: linear-gradient(145deg, #e1306c, #c13584);
+        }
+        
+        .instagram-btn:hover {
+            border-color: #e1306c;
+            box-shadow: 0 5px 15px rgba(225, 48, 108, 0.4);
+        }
+        
+        /* Footer Styles */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            border-top: 1px solid var(--gold-dark);
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .footer-link {
+            color: var(--gold-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .footer-link:hover {
+            color: white;
+            text-shadow: 0 0 5px var(--gold-light);
+        }
+        
+        .copyright {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        /* Professional badge */
+        .professional-badge {
+            background: linear-gradient(145deg, var(--gold-light), var(--gold-dark));
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-menu">
+        <h1 class="main-title">📺 Haroon's TV Tools <span class="professional-badge">PRO</span></h1>
+        <div class="tools-container">
+            <button class="tool-button" onclick="showPage('jazz-tv-page')">
+                <i class="fas fa-tv"></i> Jazz TV
+            </button>
+            <button class="tool-button" onclick="showPage('zong-tv-page')">
+                <i class="fas fa-satellite-dish"></i> Zong TV
+            </button>
+        </div>
+        
+        <!-- Social Media Section -->
+        <div class="social-section">
+            <div class="social-title">Follow Us</div>
+            <div class="social-buttons">
+                <div class="social-button facebook-btn" onclick="window.open('https://www.facebook.com/share/1J3iVNEUic/', '_blank')">
+                    <i class="fab fa-facebook-f"></i>
+                </div>
+                <div class="social-button tiktok-btn" onclick="window.open('https://www.tiktok.com/@iharoon_am', '_blank')">
+                    <i class="fab fa-tiktok"></i>
+                </div>
+                <div class="social-button instagram-btn" onclick="window.open('https://www.instagram.com/ih4roon/', '_blank')">
+                    <i class="fab fa-instagram"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="jazz-tv-page" class="tv-page">
+        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>🎬 JAZZ TV by Haroon</span></h1>
+        <div class="player-box" id="playerBox_jazz"><video id="videoPlayer_jazz"></video></div>
+        <div class="channelGrid" id="channelGrid_jazz"></div>
+    </div>
+
+    <div id="zong-tv-page" class="tv-page">
+        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>📡 ZONG TV by Haroon</span></h1>
+        <div class="player-box" id="playerBox_zong"><video id="videoPlayer_zong"></video></div>
+        <div class="channelGrid" id="channelGrid_zong"></div>
+    </div>
+
+    <div id="popup-overlay">
+        <div id="popup-box">
+            <h2>🚀 Welcome to Haroon's TV Tools</h2>
+            <p>✨ Experience premium streaming with our professional-grade platform. Enjoy your favorite channels with crystal-clear quality and seamless performance.</p>
+            <button id="popup-close-btn">🎯 Enter Platform</button>
+             <a href="https://wa.me/923449292933?text=Hello%20Haroon%20!%20Reporting%20a%20bug..." class="popup-whatsapp-button" target="_blank" title="Contact us for any bug">
+                <i class="fab fa-whatsapp"></i>&nbsp; 🐛 Report a Bug
+            </a>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#" class="footer-link"><i class="fas fa-home"></i> Home</a>
+                <a href="#" class="footer-link"><i class="fas fa-info-circle"></i> About</a>
+                <a href="#" class="footer-link"><i class="fas fa-envelope"></i> Contact</a>
+                <a href="#" class="footer-link"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
+            </div>
+            <div class="copyright">
+                &copy; 2023 Haroon's TV Tools. All rights reserved. | Crafted with ❤️ for seamless streaming
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Complete Jazz TV Channels
+        const jazzChannels = [
+            { category: "Entertainment", name: "Green Entertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1702552123-logo.webp?id=17", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Green_Entertainment-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "ARY Digital", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ary-digital-live-logo.webp?id=51", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ARYdigital-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Geo Entertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/geo-entertainment-live.webp?id=98", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/GeoEntertainment-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Hum TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/HUM-TV-Channel-logo.webp?id=30", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/humTV-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "ARY Zindagi", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ary-zindagi-live-logo.webp?id=58", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ARYzindagi-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Play TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/play-tv-live.webp?id=18", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/play-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "AajEntertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/aaj-entertainment-live.webp?id=75", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AajEntertainment-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "See Tv", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/see-tv-live.webp?id=71", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/seeTV-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Urdu1", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/urdu-1-live.webp?id=64", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/urdu-1-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "AurLife", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1745518766547.webp?id=81", url: "https://cdn12isb.tamashaweb.com:8087/jazzauth/AurLife-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "BolEntertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/bol-entertainment-live.webp?id=33", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/BolEntertainment-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "ExpressEntertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/express-entertainment-live.webp?id=64", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ExpressEntertainment-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Sab Tv", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1686044497-logo.webp?id=59", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/SabTV-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "AAN TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1681977574-logo.webp?id=23", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AAN-TV-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Hum Sitaray", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/HUM-Sitaray-Channel-logo.webp?id=27", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/HumSitaray-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Set Entertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1730720761397.webp?id=65", url: "https://cdn23lhr.tamashaweb.com:8087/YlUHeDQb7a/SetEntertainment-abr/live/vsat-setent-L/chunks.m3u8" },
+            { category: "Entertainment", name: "TV One", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/tv-one-live.webp?id=92", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/TVOne-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "A Plus", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/a-plus-live.webp?id=86", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Aplus-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "Apna TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/apna-tv-live.webp?id=61", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Apna-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "LTN Family", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ltn-family-live.webp?id=49", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/LTNFamily-abr/playlist.m3u8" },
+            { category: "Entertainment", name: "PTV Home", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1750321510303.webp?id=52", url: "https://cdn23lhr.tamashaweb.com:8087/jazzauth/PTVHome-abr/playlist.m3u8" },
+            { category: "News", name: "ARY News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1684242189-logo.webp?id=58", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ARYnews-abr/playlist.m3u8" },
+            { category: "News", name: "Geo News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/geo-news-live.webp?id=80", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/geoNews-abr/playlist.m3u8" },
+            { category: "News", name: "HUM News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/HUM-News-Channel-logo.webp?id=84", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/humnews-abr/playlist.m3u8" },
+            { category: "News", name: "Tamasha News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1744124970890.webp?id=100", url: "https://cdn12isb.tamashaweb.com:8087/jazzauth/Tamasha-News-abr/playlist.m3u8" },
+            { category: "News", name: "Samaa TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/samaa-tv-live.webp?id=13", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/samaaTV-abr/playlist.m3u8" },
+            { category: "News", name: "Bol News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/bol-news-live.webp?id=87", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/BolNews-abr/playlist.m3u8" },
+            { category: "News", name: "Express News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/express-news-live.webp?id=84", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/expressnews-abr/playlist.m3u8" },
+            { category: "News", name: "Aaj News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/aaj-news-live.webp?id=70", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AajNews-abr/playlist.m3u8" },
+            { category: "News", name: "PTV News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1750321735602.webp?id=97", url: "https://cdn23lhr.tamashaweb.com:8087/jazzauth/PTVNews-abr/playlist.m3u8" },
+            { category: "News", name: "365 News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1745518926422.webp?id=34", url: "https://cdn22lhr.tamashaweb.com:8087/jazzauth/365News-abr/playlist.m3u8" },
+            { category: "News", name: "A1 TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/a1-tv-live.webp?id=60", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/A1TV-abr/live/vsat-124L/chunks.m3u8" },
+            { category: "News", name: "Dawn News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/dawn-news-live.webp?id=44", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/DawnNews-abr/playlist.m3u8" },
+            { category: "News", name: "Suno News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1709545345-logo.webp?id=42", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Suno_News-abr/playlist.m3u8" },
+            { category: "News", name: "Neo News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/neo-tv-live.webp?id=11", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/NeoNews-abr/playlist.m3u8" },
+            { category: "News", name: "ABN News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1686912075-logo.webp?id=10", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ABNnews-abr/playlist.m3u8" },
+            { category: "News", name: "Abb Takk", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/abb-takk-news-live.webp?id=78", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/abbtak-abr/playlist.m3u8" },
+            { category: "News", name: "GNN", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/gnn-live.webp?id=68", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/GNN-abr/playlist.m3u8" },
+            { category: "News", name: "24 News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/channel-24-live.webp?id=60", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/24News-abr/playlist.m3u8" },
+            { category: "News", name: "Such TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/such-tv-live.webp?id=96", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/SachTV/playlist.m3u8" },
+            { category: "News", name: "Roz News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/roze-news-live.webp?id=92", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/RozNews-abr/playlist.m3u8" },
+            { category: "News", name: "Discover Pakistan", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/discover-pakistan-live-logo.webp?id=100", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/DiscoveryPakistan-abr/playlist.m3u8" },
+            { category: "News", name: "Lahore Rang", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/lahore-rang-logo.webp?id=75", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/LahoreRung-abr/playlist.m3u8" },
+            { category: "News", name: "News One", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/news-one-live.webp?id=32", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/NewsOne-abr/playlist.m3u8" },
+            { category: "News", name: "Public TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/public-news-live.webp?id=37", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/PublicTV-abr/playlist.m3u8" },
+            { category: "News", name: "Channel 5", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/channel-five-live.webp?id=79", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Channel5-abr/playlist.m3u8" },
+            { category: "News", name: "City 42", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/city-42-live.webp?id=97", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/city42(vnw)-abr/playlist.m3u8" },
+            { category: "News", name: "Metro 1 News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/metro-1-news-live.webp?id=98", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Metro1News-abr/playlist.m3u8" },
+            { category: "News", name: "Afghan TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/afghan-tv-live.webp?id=37", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AfghanTV-abr/playlist.m3u8" },
+            { category: "News", name: "Time News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/time-news-live.webp?id=19", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/TimeNews-abr/playlist.m3u8" },
+            { category: "News", name: "Rohi TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/rohi-live.webp?id=46", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/RohiTV-abr/playlist.m3u8" },
+            { category: "News", name: "K21", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/k21-news-live.webp?id=84", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/K21-abr/playlist.m3u8" },
+            { category: "News", name: "Waseeb", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/waseb-live.webp?id=100", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/waseeb-abr/playlist.m3u8" },
+            { category: "News", name: "City 41", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/city41-live.webp?id=72", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/city41News-abr/playlist.m3u8" },
+            { category: "News", name: "Mashriq TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/mashriq-tv-live.webp?id=53", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/mashriqtv-abr/playlist.m3u8" },
+            { category: "News", name: "Kohinoor TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/kohenoor-tv-live.webp?id=16", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/KohinoorTV-abr/playlist.m3u8" },
+            { category: "News", name: "Champion TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/champion-tv-live.webp?id=65", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/championtv-abr/playlist.m3u8" },
+            { category: "News", name: "Kay2 TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1685535127-logo.webp?id=48", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Kay2-abr/playlist.m3u8" },
+            { category: "News", name: "PNN", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/AIKNEWS-LOGO.webp?id=60", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/PNN-abr/playlist.m3u8" },
+            { category: "News", name: "PTV World", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1750322208140.webp?id=36", url: "https://cdn22lhr.tamashaweb.com:8087/jazzauth/PTVWorld-abr/playlist.m3u8" },
+            { category: "News", name: "PTV National", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1750322366525.webp?id=55", url: "https://cdn22lhr.tamashaweb.com:8087/jazzauth/PTVNational-abr/playlist.m3u8" },
+            { category: "News", name: "Al Jazeera", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1706163791-logo.webp?id=57", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AL-Jazeera-abr/playlist.m3u8" },
+            { category: "News", name: "CNN", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/cnn-news-live.webp?id=34", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Livecnn-abr/playlist.m3u8" },
+            { category: "News", name: "DW News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/DW-english-live.webp?id=21", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/DWNews-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "KTN Entertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ktn-entertainment-live.webp?id=40", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ktnEntertainment-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Kashish TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/kashish-live.webp?id=12", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/KashishTV-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Sindh TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/sindh-tv-live.webp?id=56", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/sindhTV-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Mehran TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/mehran-tv-logo.webp?id=100", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/MehranTV-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "KTN News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ktn-news-live.webp?id=41", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/ktnNews-abr/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Sindh News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/sindh-tv-news-live.webp?id=30", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/SindhNews-abr/playlist.m3u8" },
+            { category: "Pashto Channels", name: "AVT Khyber", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1685537734-logo.webp?id=53", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/AVTkhyberTV-abr/playlist.m3u8" },
+            { category: "Pashto Channels", name: "Khyber News", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1685537412-logo.webp?id=51", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/KhyberNews-abr/playlist.m3u8" },
+            { category: "Pashto Channels", name: "Pashto 1", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/HUM-Pashto-Channel-logo.webp?id=29", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Pashto1-abr/playlist.m3u8" },
+            { category: "Sports", name: "PTV Sports", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1750321954030.webp?id=31", url: "https://cdn21lhr.tamashaweb.com:8087/jazzauth/PTVSports-abr/playlist.m3u8" },
+            { category: "Sports", name: "Ten Sports HD", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/ten-sports-hd-logo.webp?id=64", url: "https://cdn07isb.tamashaweb.com:8087/YlUHeDQb7a/157-3H/playlist.m3u8" },
+            { category: "Sports", name: "EPL", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/TMSH-1724158879315.webp?id=28", url: "https://cdn06khi.tamashaweb.com:8087/YlUHeDQb7a/EPL-A-abr/playlist.m3u8" },
+            { category: "Sports", name: "Eurosport", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1686912440-logo.webp?id=37", url: "https://cdn22lhr.tamashaweb.com:8087/jazzauth/Eurosport-abr/playlist.m3u8" },
+            { category: "Kids", name: "Nick Jr", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1729547438288.webp?id=32", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Nick-Jr-abr/playlist.m3u8" },
+            { category: "Kids", name: "Nick India", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/TMSH-1720190626301.webp?id=31", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Nick-India-abr/playlist.m3u8" },
+            { category: "Kids", name: "Nick Jr Hindi", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/1729547557701.webp?id=77", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Nick-Jr-Hindi-abr/playlist.m3u8" },
+            { category: "Kids", name: "Cartoon Network", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/cartoon-network-live.webp?id=41", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/cartoonnetwork-abr/playlist.m3u8" },
+            { category: "Kids", name: "Minimax", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1702633459-logo.webp?id=70", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Minimax-abr/playlist.m3u8" },
+            { category: "Kids", name: "Baby TV", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/baby-tv-live.webp?id=71", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/BabyTV-abr/playlist.m3u8" },
+            { category: "Kids", name: "Animal Planet", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/2018_Animal_Planet_logo.svg/1200px-2018_Animal_Planet_logo.svg.png", url: "https://cdn07isb.tamashaweb.com:8087/YlUHeDQb7a/AnimalPlanet-abr/playlist.m3u8" },
+            { category: "Islamic", name: "Madni Channel", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/madani-channel-live.webp?id=59", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Madni-abr/playlist.m3u8" },
+            { category: "Islamic", name: "Saudi Sunnah", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/saudi-sunnah-madinah-tv-hd-live.webp?id=38", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/SaudiSunnah(NW)-abr/playlist.m3u8" },
+            { category: "Islamic", name: "Saudi Makkah", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/saudi-quran-makkah-tv-hd-live.webp?id=43", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Saudimakkah(nw)-abr/playlist.m3u8" },
+            { category: "Movies", name: "Film World", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/filmworld-live.webp?id=27", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/filmworld-abr/playlist.m3u8" },
+            { category: "Movies", name: "Filmax", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/filmax-live.webp?id=58", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Filmax-abr/playlist.m3u8" },
+            { category: "Movies", name: "Movie One", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/movie-one-live.webp?id=82", url: "https://cdn21lhr.tamashaweb.com:8087/jazzauth/MovieOne-abr/playlist.m3u8" },
+            { category: "Music", name: "8XM", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/8xm-live.webp?id=92", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/8xm-abr/playlist.m3u8" },
+            { category: "Music", name: "Jalwa", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/jalwa-tv-live.webp?id=82", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/jalwa-abr/playlist.m3u8" },
+            { category: "Food", name: "Hum Masala", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/logo/HUM-Masala-Channel-logo.webp?id=13", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/hummasala-abr/playlist.m3u8" },
+        ];
+        
+        // Complete Zong TV Channels
+        const zongChannels = [
+            { category: "Islamic", name: "Saudi Quran", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT4atGM34rXtNQzx2wCnQQVzGSjU805qIOdFw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/SaudiQuran-142/playlist.m3u8" },
+            { category: "Islamic", name: "Saudi Sunnah", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTGupfsMkkP5X3iP6XZx6yi2LSzq8_6TIOC-w&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/SaudiSunnah-141/live/141M/chunks.m3u8" },
+            { category: "Islamic", name: "Madani Tv", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuLdTFn4TdP5-rF7YyPXTvOKguRsWJ0q0-cEDZUJ1gKGIl85TEpTiYSx0&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/Madni-121/playlist.m3u8" },
+            { category: "Entertainment", name: "PTV Home", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqsvRHu6ZhAQdM0FE5MRF4Goto2-mcA6K4sw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/ptv-home-174/playlist.m3u8" },
+            { category: "Entertainment", name: "Bol TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQIKXUbh96lR2jrQ90lzfteBQuVL8TROFk0w&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/bolnent-159-4/playlist.m3u8" },
+            { category: "News", name: "Bol News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgK3r8pJhDdYfdu-8lGclYbvW6W4wB9lNqF-1MvwY05aPkBrB_1zigQHA&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/bolnews-159-3/playlist.m3u8" },
+            { category: "News", name: "Express News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwagVGRGWczQgdzNC-RdEl1t0eF_C8_yzh-o-9WlBh7yfFR6ovB8AIKi61&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/ExpressNews-155/playlist.m3u8" },
+            { category: "Entertainment", name: "Express Ent", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCfJKkUhCHVllOSPBVjwCFpPn9b-P_of0kjA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/EXP-ENT-159-1/playlist.m3u8" },
+            { category: "Music", name: "Jalwa", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnWayKJ8devGcnrbcnfboF1RETCKoWr2aFjP-1W8iw-1p4TlYmZ6bQwnlG&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/JalwaTV-135/live/135M/chunks.m3u8" },
+            { category: "Music", name: "8XM", logo: "http://8xm.tv/wp-content/uploads/2019/02/512X512p.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/8XM-131/playlist.m3u8" },
+            { category: "Music", name: "Oxygen Tv", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5pVm-0Pp3hKucynZctFMIeh985gMe84RR3A&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/132M/playlist.m3u8" },
+            { category: "Entertainment", name: "Geo Tv", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSJvGC860EQrod1hNmPrj9gyzoub5Qgg2M0l_12dQS18O914xV-yjE1-zHH&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/geoent-122/playlist.m3u8" },
+            { category: "News", name: "Geo News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQTvmQmYYa9mh7dXePN1DEBpawvKb2Jcd0Shw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/geonews-137/playlist.m3u8" },
+            { category: "Entertainment", name: "Urdu 1", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpxnA2_kHg8QgWos0GjlvCvENmdUgQhhTO1hIAwqSOE4Txfibg0oCxaq4&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/Urdu1-158-4/playlist.m3u8" },
+            { category: "Entertainment", name: "A Plus", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQdzutge89wiGQnXi2_-xgth7iKTQiHQS1ZzQ&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/APlus-118/playlist.m3u8" },
+            { category: "Entertainment", name: "AAJ Entertainment", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTUKeKZG1vzTQk_qslUAkxCz_KwQo4bXdFL7d1OFpH6-XkZNk0&s", url: "https://vodzong.mjunoon.tv:8087/streamtest/AAJENT-125/playlist.m3u8" },
+            { category: "News", name: "AAJ News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw3XifA6zKwga4pcAvvSHEi4Jx-vMLbIBfjBijrZiG1hhVwtxJES73OqXk&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/AAJNews-124/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Sindh TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGsxWjXyJ9Nxvf78Le-W1jkerBBuztBahqs6VO3g8QZPVJC_LKagkmBYU&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/SindhTV-136-1/live/136-1M/chunks.m3u8" },
+            { category: "Sindhi Channels", name: "Sindh News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTElWZUWbSKUaT9_4ZMQ_6rH2n7qzcRCsmrgw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/SindhNews-136-2/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "KTN TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1Vbtybwih6wSaFraEAU6ym_-jyUXoz9qBYA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/KTN-149/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "KTN News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSqACj5a67chU59ADkTM8gApWbYjQjKyDzHEA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/KTNNews-151/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Kashish TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7a5ORjEqgt5veU6e0ltVmk_IZuov34IVWN4DwQELwboZIEJc&s", url: "https://vodzong.mjunoon.tv:8087/streamtest/Kashish-150/playlist.m3u8" },
+            { category: "Sindhi Channels", name: "Awaz TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGw2NFUe2PRUaUZ5zPFexMWsJdD5XdTJhcUg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/AWAZ-120/playlist.m3u8" },
+            { category: "News", name: "Time News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9ItuK1wSgi8G2Cluif09aNKdbxSYa5E1pYJw66W6RDjck2-KfHIlBAAM&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/time-news-172/playlist.m3u8" },
+            { category: "Entertainment", name: "Play TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsltTCnRhJul3X7RgioroIN-fkR6G9nh7z3g&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/playtv-154/playlist.m3u8" },
+            { category: "News", name: "AbbTak News", logo: "https://upload.wikimedia.org/wikipedia/en/c/c3/Abb_Tak_news_logo.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/AbbTakNews-133/live/133H/chunks.m3u8" },
+            { category: "News", name: "Samaa TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxegS2MnXuq9RiMdfxqW8rfqlyFKTr5HwMgg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/Samaa-157-3/playlist.m3u8" },
+            { category: "News", name: "Dawn News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRrs-9thVXyGDeokLLg9jJeGGRtg3P7WdWMzg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/DawnNews-152/playlist.m3u8" },
+            { category: "Entertainment", name: "Hum TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSkYgs_Akm-8OaExLxX2Jk1Vm3VKV6zTJake-vDe3Nho7vfL1C2zHFuEDDN&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/Hum-TV-136-3/playlist.m3u8" },
+            { category: "News", name: "Hum News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTmsgdiQC-oH_neSmr9rn4Q64tmaPXjW_pCeg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/Hum-news-80/playlist.m3u8" },
+            { category: "News", name: "Dunya News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTk5mYNrIsFgaQacU64xg6TXvnHdDrhK_s1Tg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/DunyaNews-113/playlist.m3u8" },
+            { category: "Entertainment", name: "See TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZYOj6PnXQCNoA2S1vK79MpuGOP5Y3ow4IA7kwj3yeNqdgrrz9M9l_QEA&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/SeeTV-156/playlist.m3u8" },
+            { category: "Kids", name: "Baby TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfsji6pOJevIdHmug5J2ppCxB40sBaCEqfqcnNo06Xrzr-uHNvKA6BoEk&s=10", url: "https://vodzong.mjunoon.tv:8087/streamtest/babytv-77/playlist.m3u8" },
+            { category: "Entertainment", name: "Champion TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOoWEUxqSt1T1KHUwj-3S_U_TlAZ-JtR1ujQ&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/champion-177/playlist.m3u8" },
+            { category: "Movies", name: "Movie One", logo: "https://i1.wp.com/tvtonight.com.au/wp-content/uploads/2013-01-01_1835.jpg?w=290&ssl=1", url: "https://vodzong.mjunoon.tv:8087/streamtest/movie-one-176/playlist.m3u8" },
+            { category: "Entertainment", name: "TV1", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQN4ty614iusgACZsNv19qUIaOWQfjC_svwTg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/TV1-129/playlist.m3u8" },
+            { category: "Regional", name: "WASEB", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6nNDOHnQcTUrc927J8WJCKguprLBriecThA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/WASEB-130/playlist.m3u8" },
+            { category: "News", name: "Roz News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3HxB_nRvvD0KireVtBymmZD-ZScTmYwQSow&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/RozNews-139/playlist.m3u" },
+            { category: "News", name: "VSH News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZdvN4yiS31fNgC1fv48P-a7IXWi6MIe7yAQ&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/VSHTV-122/playlist.m3u8" },
+            { category: "News", name: "Channel 5", logo: "https://pbs.twimg.com/media/EwAo8HrXMAITpUb?format=jpg&name=360x360", url: "https://vodzong.mjunoon.tv:8087/streamtest/Channel5-159-4/live/159-4M/chunks.m3u8" },
+            { category: "News", name: "DW", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/1200px-Deutsche_Welle_symbol_2012.svg.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/DW-136-4A/playlist.m3u8" },
+            { category: "Kids", name: "Cartoon Network", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPVRFCHHW_gH-9LSOuxX2zcLYQS3xQVXuTGw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/cartoon-network-87/playlist.m3u8" },
+            { category: "Entertainment", name: "Aruj TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0kRh-QdxrJrPyMjxZkkazHwFNAkAie9cmTA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/ArujTV-117/playlist.m3u8" },
+            { category: "News", name: "A1 News", logo: "https://pbs.twimg.com/profile_images/973580855317708801/0AJ7v7He.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/A1-184/playlist.m3u8" },
+            { category: "News", name: "K21 News", logo: "https://pbs.twimg.com/media/EwAp_IFXIAEs3i3?format=jpg&name=240x240", url: "https://vodzong.mjunoon.tv:8087/streamtest/K21News-116/playlist.m3u8" },
+            { category: "News", name: "24 HD", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ9P-kqdcLO7biPX520IsodHU9A6LeqXO0F2w&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/24HD-146/playlist.m3u8" },
+            { category: "Kids", name: "Anim Plan", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF_NuLRli6VMhGWfP4NpFPLWWoiCpz4aasQA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/anim-plan-179/live/179M/chunks.m3u8" },
+            { category: "News", name: "NEWS1", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSs2CV0JhL9ixGKo1Uh1ruuJhOPzaXjFMIW1A&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/NEWS1-128/playlist.m3u8" },
+            { category: "News", name: "Public News", logo: "https://upload.wikimedia.org/wikipedia/commons/9/9a/Public-News-Logo-1.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/public-115/playlist.m3u8" },
+            { category: "News", name: "Neo News", logo: "https://upload.wikimedia.org/wikipedia/en/a/a6/Neo_News_logo.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/Neo-110/playlist.m3u8" },
+            { category: "News", name: "CNN", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b1/CNN.svg/1200px-CNN.svg.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/cnn-86/playlist.m3u8" },
+            { category: "News", name: "Capital TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS6dtEgQit4hjIDU8JUzhfFAhgjiXyG0Dw_Gg&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/capitaltv-111/playlist.m3u8" },
+            { category: "Regional", name: "Apna Channel", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/58/Apna_channel_logo.png/440px-Apna_channel_logo.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/ApnaChannel-134/playlist.m3u8" },
+            { category: "Regional", name: "UK44", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdvENxFCSQlcJQBw32nlhW1xJHgrwf2DJfWA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/UK44-145/playlist.m3u8" },
+            { category: "Pashto Channels", name: "PASHTO TV", logo: "https://pbs.twimg.com/media/EwA0kReXMAED5fI?format=jpg&name=240x240", url: "https://vodzong.mjunoon.tv:8087/streamtest/PASHTOTV-119/playlist.m3u8" },
+            { category: "News", name: "PNN News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0kRh-QdxrJrPyMjxZkkazHwFNAkAie9cmTA&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/PNN-185/playlist.m3u8" },
+            { category: "News", name: "Sach TV", logo: "https://pbs.twimg.com/media/EwA1CSFXcAMBFuz?format=jpg&name=360x360", url: "https://vodzong.mjunoon.tv:8087/streamtest/sachtv-183/playlist.m3u8" },
+            { category: "News", name: "GTV", logo: "https://pbs.twimg.com/profile_images/1346771276317085696/N5bjSnvm_400x400.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/GTV-186/playlist.m3u8" },
+            { category: "Regional", name: "Afghan TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTy2CV0JhL9ixGKo1Uh1ruuJhOPzaXjFMIW1A&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/AfghanTV-140/playlist.m3u8" },
+            { category: "Business", name: "Karobar TV", logo: "https://pbs.twimg.com/media/EwA2nl_XMAAA0Qf?format=jpg&name=240x240", url: "https://vodzong.mjunoon.tv:8087/streamtest/karobartv-en/live/karobartv-720p/chunks.m3u8" },
+            { category: "Pashto Channels", name: "AVT Khyber", logo: "https://is5-ssl.mzstatic.com/image/thumb/Purple114/v4/23/19/8b/23198bd9-1aef-6776-249e-c2a88fb4af32/source/512x512bb.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/AVTKhyber-114/playlist.m3u8" },
+            { category: "Pashto Channels", name: "Khyber News", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH7RahHiYlpoPwNbSZjiF6NoDL8ANdwrZ_CQ&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/KhyberNews-160/playlist.m3u8" },
+            { category: "Entertainment", name: "City42", logo: "https://pbs.twimg.com/media/EwA5-A6WEAAVeny?format=jpg&name=small", url: "https://vodzong.mjunoon.tv:8087/streamtest/City42-144/playlist.m3u8" },
+            { category: "Regional", name: "KAY2", logo: "https://pbs.twimg.com/media/EwA6NsEXAAgdcOP?format=png&name=360x360", url: "https://vodzong.mjunoon.tv:8087/streamtest/KAY2-127/playlist.m3u8" },
+            { category: "Entertainment", name: "City41", logo: "https://pbs.twimg.com/profile_images/1234423034515279874/9Rrus36m_400x400.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/City41-143/playlist.m3u8" },
+            { category: "Entertainment", name: "ROHI", logo: "https://yt3.ggpht.com/ytc/AAUvwnh5smgopWMbWiIe7eXDVfXH3a7PYhwUoi9CclvY-Q=s900-c-k-c0x00ffffff-no-rj", url: "https://vodzong.mjunoon.tv:8087/streamtest/ROHI-147/playlist.m3u8" },
+            { category: "Movies", name: "Filmworld", logo: "https://i.ytimg.com/vi/Ii3DzAnpREs/hqdefault_live.jpg", url: "https://vodzong.mjunoon.tv:8087/streamtest/Filmworld-126/playlist.m3u8" },
+            { category: "Food", name: "Hum Masala", logo: "https://pbs.twimg.com/media/EwA7OZJWYAAaYFg?format=jpg&name=240x240", url: "https://vodzong.mjunoon.tv:8087/streamtest/hum-masala-81/playlist.m3u8" },
+            { category: "Regional", name: "Mashriq", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfyx7RH8sbEmTQVmfPajoCBKDMQj-pVRxJzw&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/mashriq-109/playlist.m3u8" },
+            { category: "Entertainment", name: "Hum Sitaray", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQndr4CcgbXrrNs8wNz9j2LPNRftSNImlMlNQ&usqp=CAU", url: "https://vodzong.mjunoon.tv:8087/streamtest/HumSitaray-157-4/playlist.m3u8" },
+            { category: "Movies", name: "Filmax", logo: "https://www.brandsynario.com/directory/wp-content/uploads/2018/01/a-23.png", url: "https://vodzong.mjunoon.tv:8087/streamtest/filmax-158-1/playlist.m3u8" },
+        ];
+        
+        // --- Core Application Logic (minified for performance) ---
+        const mainMenu=document.getElementById("main-menu"),jazzTvPage=document.getElementById("jazz-tv-page"),zongTvPage=document.getElementById("zong-tv-page"),popup=document.getElementById("popup-overlay"),playerState={hls:null,currentIndex:-1,sizeMode:"fit",dragging:!1,controlsTimeout:null,video:null,playerBox:null,playBtn:null,muteBtn:null,qualityMenu:null,controls:null,channels:[],progressBar:null,progressContainer:null,progressHandle:null,timeDisplay:null,loader:null,channelName:null};function getPlayerControlsHTML(){return`<div class="loader"><div class="loader-spin"></div></div><div class="controls"><button onclick="prevChannel()" class="control-btn"><i class="fas fa-backward-step"></i></button><button class="playBtn" onclick="togglePlay()" class="control-btn"><i class="fas fa-play"></i></button><button class="muteBtn" onclick="toggleMute()" class="control-btn"><i class="fas fa-volume-high"></i></button><button onclick="nextChannel()" class="control-btn"><i class="fas fa-forward-step"></i></button><button onclick="toggleFullScreen()" class="control-btn"><i class="fas fa-expand"></i></button><button onclick="toggleSizeMode()" class="control-btn"><i class="fas fa-crop-simple"></i></button><button onclick="toggleQualityMenu()" class="control-btn"><i class="fas fa-cog"></i></button></div><div class="qualityMenu"></div><div class="progressContainer"><div class="progressBar"></div><div class="progressHandle"></div></div><div class="timeDisplay">00:00 / 00:00</div><div class="channelName">Select a channel</div>`}function generateChannelGrid(e,t){const l=document.getElementById(e);let a="";t.forEach(e=>{e.category!==a&&(a=e.category,l.innerHTML+=`<h2 class="category-title">${a}</h2>`),l.innerHTML+=`<div class="channel-container" onclick="playChannel(this, '${e.name.replace(/'/g,"\\'")}', '${e.url}')"><img src="${e.logo}" alt="${e.name}" class="channel-logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div class="logo-fallback">${e.name}</div></div>`})}function showPage(e){playerState.hls&&(playerState.hls.destroy(),playerState.hls=null),playerState.video&&(playerState.video.pause(),playerState.video.src=""),mainMenu.style.display="none",jazzTvPage.style.display="none",zongTvPage.style.display="none",document.getElementById(e).style.display="flex"}window.onload=()=>{const e=document.getElementById("popup-close-btn");e.onclick=()=>{popup.style.display="none",document.body.style.overflow="auto"},document.getElementById("playerBox_jazz").innerHTML+=getPlayerControlsHTML(),document.getElementById("playerBox_zong").innerHTML+=getPlayerControlsHTML(),generateChannelGrid("channelGrid_jazz",jazzChannels),generateChannelGrid("channelGrid_zong",zongChannels),popup.style.display="flex",document.body.style.overflow="hidden"};function setActivePlayer(e){const t=e.closest(".tv-page");playerState.playerBox=t.querySelector(".player-box"),playerState.video=t.querySelector("video"),playerState.playBtn=t.querySelector(".playBtn"),playerState.muteBtn=t.querySelector(".muteBtn"),playerState.qualityMenu=t.querySelector(".qualityMenu"),playerState.controls=t.querySelector(".controls"),playerState.progressBar=t.querySelector(".progressBar"),playerState.progressContainer=t.querySelector(".progressContainer"),playerState.progressHandle=t.querySelector(".progressHandle"),playerState.timeDisplay=t.querySelector(".timeDisplay"),playerState.loader=t.querySelector(".loader"),playerState.channelName=t.querySelector(".channelName"),playerState.channels=Array.from(t.querySelectorAll(".channel-container")),playerState.video.ontimeupdate=updateProgressBar,playerState.playerBox.onmousemove=showControlsAndResetTimer,playerState.playerBox.onmouseleave=()=>clearTimeout(playerState.controlsTimeout),playerState.progressHandle.onmousedown=()=>{playerState.dragging=!0}}function hideControls(){playerState.controls&&!playerState.video.paused&&["controls","progressContainer","timeDisplay","channelName"].forEach(e=>playerState[e].classList.add("hidden"))}function showControlsAndResetTimer(){playerState.controls&&(["controls","progressContainer","timeDisplay","channelName"].forEach(e=>playerState[e].classList.remove("hidden")),clearTimeout(playerState.controlsTimeout),playerState.controlsTimeout=setTimeout(hideControls,4e3))}function playChannel(e,t,l){setActivePlayer(e);const a=e.querySelector(".channel-logo,.logo-fallback");playerState.channels.forEach(e=>{e.querySelector(".channel-logo").classList.remove("active-channel"),e.querySelector(".logo-fallback").classList.remove("active-channel")}),a.classList.add("active-channel"),playerState.hls&&playerState.hls.destroy(),playerState.loader.style.visibility="visible",playerState.currentIndex=playerState.channels.indexOf(e),playerState.channelName.innerText=t,playerState.qualityMenu.innerHTML="",Hls.isSupported()?(playerState.hls=new Hls,playerState.hls.loadSource(l),playerState.hls.attachMedia(playerState.video),playerState.hls.on(Hls.Events.MANIFEST_PARSED,(e,t)=>{setupQualityMenu(t.levels),playerState.loader.style.visibility="hidden",playerState.video.play(),playerState.playBtn.innerHTML='<i class="fas fa-pause"></i>',showControlsAndResetTimer()}),playerState.hls.on(Hls.Events.ERROR,(e,t)=>{t.fatal&&(playerState.channelName.innerText="Stream Error",playerState.loader.style.visibility="hidden")})):playerState.video.canPlayType("application/vnd.apple.mpegurl")&&(playerState.video.src=l,playerState.video.oncanplay=()=>{playerState.loader.style.visibility="hidden",playerState.video.play(),playerState.playBtn.innerHTML='<i class="fas fa-pause"></i>',showControlsAndResetTimer()})}function setupQualityMenu(e){let t=document.createElement("button");t.innerText="Auto",t.onclick=()=>{playerState.hls.currentLevel=-1,updateQualityActive(t)},playerState.qualityMenu.appendChild(t),e.forEach((e,l)=>{let a=document.createElement("button");a.innerText=e.height+"p",a.onclick=()=>{playerState.hls.currentLevel=l,updateQualityActive(a)},playerState.qualityMenu.appendChild(a)}),updateQualityActive(t)}function updateQualityActive(e){Array.from(playerState.qualityMenu.children).forEach(e=>e.classList.remove("active-quality")),e.classList.add("active-quality")}function prevChannel(){playerState.currentIndex>0&&playerState.channels[playerState.currentIndex-1].click()}function nextChannel(){playerState.currentIndex<playerState.channels.length-1&&playerState.channels[playerState.currentIndex+1].click()}function togglePlay(){playerState.video&&(playerState.video.paused?(playerState.video.play(),playerState.playBtn.innerHTML='<i class="fas fa-pause"></i>',showControlsAndResetTimer()):(playerState.video.pause(),playerState.playBtn.innerHTML='<i class="fas fa-play"></i>',clearTimeout(playerState.controlsTimeout)))}function toggleMute(){playerState.video.muted=!playerState.video.muted,playerState.muteBtn.innerHTML=playerState.video.muted?'<i class="fas fa-volume-xmark"></i>':'<i class="fas fa-volume-high"></i>',showControlsAndResetTimer()}function toggleFullScreen(){document.fullscreenElement?document.exitFullscreen():playerState.playerBox.requestFullscreen()}function toggleQualityMenu(){playerState.qualityMenu.style.display="block"===playerState.qualityMenu.style.display?"none":"block",clearTimeout(playerState.controlsTimeout)}function toggleSizeMode(){"fit"===playerState.sizeMode?setSize("fill"):"fill"===playerState.sizeMode?setSize("stretch"):setSize("fit"),showControlsAndResetTimer()}function setSize(e){playerState.sizeMode=e,playerState.video.style.objectFit="fit"===e?"contain":"fill"===e?"cover":"fill"}function updateProgressBar(){if(playerState.video&&playerState.video.duration){const e=playerState.video.currentTime/playerState.video.duration*100;playerState.progressBar.style.width=e+"%",playerState.progressHandle.style.left=e+"%";const t=Math.floor(playerState.video.currentTime/60).toString().padStart(2,"0"),l=Math.floor(playerState.video.currentTime%60).toString().padStart(2,"0"),a=Math.floor(playerState.video.duration/60).toString().padStart(2,"0"),s=Math.floor(playerState.video.duration%60).toString().padStart(2,"0");playerState.timeDisplay.innerText=`${t}:${l} / ${a}:${s}`}}function seekVideo(e){const t=playerState.progressContainer.getBoundingClientRect();let l=(e.clientX-t.left)/t.width;playerState.video.currentTime=l*playerState.video.duration}document.onmouseup=()=>{playerState.dragging=!1},document.onmousemove=e=>{if(playerState.dragging&&playerState.progressContainer){const t=playerState.progressContainer.getBoundingClientRect();let l=(e.clientX-t.left)/t.width;l=Math.max(0,Math.min(1,l)),playerState.video.currentTime=l*playerState.video.duration}};
+    </script>
+</body>
+</html>
