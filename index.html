@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haroon TV Tools</title>
+    <title>Haroon x Ramzan TV Tools</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,6 +17,7 @@
             --background-start: #141414;
             --background-end: #000000;
             --glass-bg: rgba(255, 215, 0, 0.05);
+            --whatsapp-green: #25D366;
         }
         
         body {
@@ -74,6 +75,16 @@
             box-shadow: 0 0 25px var(--gold-dark);
             border-color: var(--gold-light);
         }
+
+        .whatsapp-btn {
+            border-color: var(--whatsapp-green);
+            background: rgba(37, 211, 102, 0.1);
+        }
+        .whatsapp-btn:hover {
+             box-shadow: 0 0 25px var(--whatsapp-green);
+             border-color: var(--whatsapp-green);
+        }
+
         /* Shimmer Effect */
         .tool-button::before {
             content: ''; position: absolute; top: 0; left: -100%;
@@ -297,13 +308,16 @@
 <body>
 
     <div id="main-menu">
-        <h1 class="main-title">📺 Haroon's TV Tools <span class="professional-badge">PRO</span></h1>
+        <h1 class="main-title">📺 Haroon x Ramzan's TV Tools <span class="professional-badge">PRO</span></h1>
         <div class="tools-container">
             <button class="tool-button" onclick="showPage('jazz-tv-page')">
                 <i class="fas fa-tv"></i> Jazz TV
             </button>
             <button class="tool-button" onclick="showPage('zong-tv-page')">
                 <i class="fas fa-satellite-dish"></i> Zong TV
+            </button>
+            <button class="tool-button whatsapp-btn" onclick="window.open('https://chat.whatsapp.com/LoafyPWMGOv88oElxdwOB8', '_blank')">
+                <i class="fab fa-whatsapp"></i> Join Group
             </button>
         </div>
         
@@ -325,20 +339,20 @@
     </div>
 
     <div id="jazz-tv-page" class="tv-page">
-        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>🎬 JAZZ TV by Haroon</span></h1>
+        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>🎬 JAZZ TV by Haroon x Ramzan</span></h1>
         <div class="player-box" id="playerBox_jazz"><video id="videoPlayer_jazz"></video></div>
         <div class="channelGrid" id="channelGrid_jazz"></div>
     </div>
 
     <div id="zong-tv-page" class="tv-page">
-        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>📡 ZONG TV by Haroon</span></h1>
+        <h1><button class="back-button" onclick="showPage('main-menu')"><i class="fas fa-arrow-left"></i></button><span>📡 ZONG TV by Haroon x Ramzan</span></h1>
         <div class="player-box" id="playerBox_zong"><video id="videoPlayer_zong"></video></div>
         <div class="channelGrid" id="channelGrid_zong"></div>
     </div>
 
     <div id="popup-overlay">
         <div id="popup-box">
-            <h2>🚀 Welcome to Haroon's TV Tools</h2>
+            <h2>🚀 Welcome to Haroon x Ramzan's TV Tools</h2>
             <p>✨ Experience premium streaming with our professional-grade platform. Enjoy your favorite channels with crystal-clear quality and seamless performance.</p>
             <button id="popup-close-btn">🎯 Enter Platform</button>
              <a href="https://wa.me/923449292933?text=Hello%20Haroon%20!%20Reporting%20a%20bug..." class="popup-whatsapp-button" target="_blank" title="Contact us for any bug">
@@ -356,12 +370,13 @@
                 <a href="#" class="footer-link"><i class="fas fa-shield-alt"></i> Privacy Policy</a>
             </div>
             <div class="copyright">
-                &copy; 2023 Haroon's TV Tools. All rights reserved. | Crafted with ❤️ for seamless streaming
+                &copy; 2023 Haroon x Ramzan's TV Tools. All rights reserved. | Crafted with ❤️ for seamless streaming
             </div>
         </div>
     </footer>
 
     <script>
+        // --- DATA AND SCRIPT ARE UNCHANGED ---
         // Complete Jazz TV Channels
         const jazzChannels = [
             { category: "Entertainment", name: "Green Entertainment", logo: "https://canvas.tamashaweb.com/jazzlive/uploads/channels/1702552123-logo.webp?id=17", url: "https://cdn12isb.tamashaweb.com:8087/YlUHeDQb7a/Green_Entertainment-abr/playlist.m3u8" },
